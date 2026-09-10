@@ -4,9 +4,11 @@
 
 ### Beyond Verified Answers: Solver-Informed Self-Distillation for Bootstrapping Operations Research Language Models
 
+[![Paper on arXiv](https://img.shields.io/badge/arXiv-2609.09957-b31b1b)](https://arxiv.org/abs/2609.09957)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-4c1)](LICENSE)
 [![Built on veRL](https://img.shields.io/badge/built%20on-veRL-6f42c1)](https://github.com/volcengine/verl)
+[![Model on Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Model-SOLID--Qwen3-yellow)](https://huggingface.co/AIOR-Research/SOLID-Qwen3)
 
 **Label-free post-training for operations-research language models using solver execution, rollout consensus, and localized on-policy self-distillation.**
 
@@ -16,14 +18,15 @@
 
 This repository contains the official implementation of **SOLID**
 (**S**olver-Informed **O**n-Policy **L**earn**I**ng through Self-**D**istillation).
-SOLID learns from unlabeled OR prompts without verified answers, a reward model,
-or an external judge. It executes sampled solver programs, turns objective
+SOLID learns from unlabeled operations research (OR) prompts without verified
+answers, a reward model, or an external judge. It executes sampled solver programs, turns objective
 consensus into a pseudo-reference, and supplies token-level guidance only where
-the candidate LP differs structurally from that reference.
+the candidate LP (linear programming) artifact differs structurally from that reference.
+For details, see the [paper on arXiv](https://arxiv.org/abs/2609.09957).
 
-The implementation follows the `verl/` package layout and keeps the original
-import namespace for compatibility. The paper-to-code correspondence is in
-[`docs/METHOD_TO_CODE.md`](docs/METHOD_TO_CODE.md).
+Our implementation is based on [veRL](https://github.com/volcengine/verl) and
+[SDPO](https://github.com/lasgroup/SDPO). The method-to-code mapping is documented
+in [`docs/METHOD_TO_CODE.md`](docs/METHOD_TO_CODE.md).
 
 ## Highlights
 
@@ -36,8 +39,6 @@ import namespace for compatibility. The paper-to-code correspondence is in
   context and refreshed after every optimizer update.
 - **Matched baseline:** `scripts/run_ttrl.sh` shares the rollout, reward, batch,
   and optimizer settings and disables only SOLID's self-distillation terms.
-- **Reproducible paper assets:** the plotted values are included as CSV files,
-  and both README result figures can be regenerated locally.
 
 ## Method
 
@@ -47,9 +48,8 @@ For each rollout group, SOLID:
 2. normalizes objective direction and clusters finite objectives;
 3. selects a majority-cluster LP artifact as the pseudo-reference;
 4. assigns majority-membership rewards for GRPO;
-5. compares candidate and reference LP structure for response sections 3, 4,
-   5, and 9; and
-6. applies same-policy reverse KL only to non-majority samples and structurally
+5. compares candidate and reference LP structure for selected response sections; and
+6. applies self-supervision only to non-majority samples and structurally
    mismatched sections.
 
 <p align="center">
@@ -75,7 +75,7 @@ each dataset and metric.
 |  | **SOLID** | **53.00** | **43.92** | **50.85** | **56.64** |
 
 Relative to matched-budget TTRL, SOLID improves 9 of 12 dataset-metric pairs
-and ties one. The largest gains are on OptMATH: **+9.64 pp maj@N**, **+5.23 pp
+and ties one. The largest gains are on OptMATH: **+9.64 pp maj@N**, **+5.24 pp
 pass@1**, **+6.33 pp pass@2**, and **+7.38 pp pass@4**. MAMO-Complex is the
 main exception, where the base model retains the strongest majority accuracy
 and pass@4.
@@ -95,7 +95,7 @@ use the same rollout and optimization budget.
 </p>
 
 The source values are in [`assets/results`](assets/results). Regenerate both
-README figures with:
+result figures with:
 
 ```bash
 python -m pip install -r requirements-plot.txt
@@ -115,14 +115,15 @@ python -m pip install -r requirements-gpu.txt
 python -m pip install -e .
 ```
 
-Install the solver backend used by your experiment:
+Install the solver backends:
 
 ```bash
 python -m pip install -r requirements-solvers.txt
 ```
 
-The launcher supports `gurobi` (default) and `copt`. Set `SOLVER_NAME` to
-select one and configure its license outside this repository.
+This installs both Gurobi and COPT. The launcher supports `gurobi` (default)
+and `copt`. Set `SOLVER_NAME` to select one and configure its license outside
+this repository.
 
 ## Data
 
@@ -198,3 +199,19 @@ This codebase is built on [veRL](https://github.com/volcengine/verl). Upstream
 copyright and attribution notices are retained in the source tree.
 
 The repository is released under the [Apache License 2.0](LICENSE).
+
+## Citation
+
+If you use SOLID in your research, please cite:
+
+```bibtex
+@misc{zhu2026verifiedanswerssolverinformedselfdistillation,
+      title={Beyond Verified Answers: Solver-Informed Self-Distillation for Bootstrapping Operations Research Language Models},
+      author={Rui Zhu and Minglong Cao and Chenyu Zhou and Jianghao Lin and Dongdong Ge},
+      year={2026},
+      eprint={2609.09957},
+      archivePrefix={arXiv},
+      primaryClass={math.OC},
+      url={https://arxiv.org/abs/2609.09957},
+}
+```
